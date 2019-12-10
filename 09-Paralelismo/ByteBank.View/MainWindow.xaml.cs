@@ -1,6 +1,7 @@
 ﻿using ByteBank.Core.Model;
 using ByteBank.Core.Repository;
 using ByteBank.Core.Service;
+using ByteBank.View.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,29 +37,45 @@ namespace ByteBank.View
         {
             BtnProcessar.IsEnabled = false;
 
-            var contas = r_Repositorio.GetContaClientes();  
+            var contas = r_Repositorio.GetContaClientes();
 
-            AtualizarView(new List<string>(), TimeSpan.Zero);
+            PgsProgresso.Maximum = contas.Count();
+
+            LimparView();
 
             var inicio = DateTime.Now;
 
-            var resultado = await ConsolidarContas(contas);
+            var progress = new Progress<string>(str => PgsProgresso.Value++);
+            //var byteBankProgress = new ByteBankProgress<string>(str => PgsProgresso.Value++);
+            var resultado = await ConsolidarContas(contas, progress);
             
             var fim = DateTime.Now;
 
             BtnProcessar.IsEnabled = true;
 
-            AtualizarView(resultado, fim - inicio);
-         
+            AtualizarView(resultado, fim - inicio);         
         }
 
-        private async Task<string[]> ConsolidarContas(IEnumerable<ContaCliente> contas)
+        private async Task<string[]> ConsolidarContas(IEnumerable<ContaCliente> contas, IProgress<string> reportadorDeProgresso)
         {
             var tasks = contas.Select(conta => 
-                Task.Factory.StartNew(() => r_Servico.ConsolidarMovimentacao(conta))
+                Task.Factory.StartNew(() => {
+                    var resultadoConsolidacao = r_Servico.ConsolidarMovimentacao(conta);
+
+                    reportadorDeProgresso.Report(resultadoConsolidacao);
+
+                    return resultadoConsolidacao;
+                })
             );
 
             return await Task.WhenAll(tasks);
+        }
+
+        private void LimparView()
+        {
+            LstResultados.ItemsSource = null;
+            TxtTempo.Text = null;
+            PgsProgresso.Value = 0;
         }
 
         private void AtualizarView(IEnumerable<String> result, TimeSpan elapsedTime)
