@@ -1,10 +1,7 @@
-﻿using System.Linq;
-using Alura.ListaLeitura.Persistencia;
+﻿using Alura.ListaLeitura.Persistencia;
 using Alura.ListaLeitura.Modelos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Http;
-using System;
 using System.Threading.Tasks;
 using Alura.WebAPI.WebApp.HttpClients;
 
@@ -13,12 +10,10 @@ namespace Alura.ListaLeitura.WebApp.Controllers
     [Authorize]
     public class LivroController : Controller
     {
-        private readonly IRepository<Livro> _repo;
         private readonly LivrosApiClient _api;
 
         public LivroController(IRepository<Livro> repository, LivrosApiClient api)
         {
-            _repo = repository;
             _api = api;
         }
 
@@ -30,11 +25,11 @@ namespace Alura.ListaLeitura.WebApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Novo(LivroUpload model)
+        public async Task<IActionResult> Novo(LivroUpload model)
         {
             if (ModelState.IsValid)
             {
-                _repo.Incluir(model.ToLivro());
+                await _api.PostLivroAsync(model);
                 return RedirectToAction("Index", "Home");
             }
             return View(model);
@@ -66,19 +61,12 @@ namespace Alura.ListaLeitura.WebApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Detalhes(LivroUpload model)
+        public async Task<IActionResult> Detalhes(LivroUpload model)
         {
             if (ModelState.IsValid)
             {
-                var livro = model.ToLivro();
-                if (model.Capa == null)
-                {
-                    livro.ImagemCapa = _repo.All
-                        .Where(l => l.Id == livro.Id)
-                        .Select(l => l.ImagemCapa)
-                        .FirstOrDefault();
-                }
-                _repo.Alterar(livro);
+                await _api.PutLivroAsync(model);
+
                 return RedirectToAction("Index", "Home");
             }
             return View(model);
@@ -86,14 +74,14 @@ namespace Alura.ListaLeitura.WebApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Remover(int id)
+        public async Task<IActionResult> Remover(int id)
         {
-            var model = _repo.Find(id);
+            var model = await _api.GetLivroAsync(id);
             if (model == null)
             {
                 return NotFound();
             }
-            _repo.Excluir(model);
+            await _api.DeleteLivroAsync(id);
             return RedirectToAction("Index", "Home");
         }
     }
