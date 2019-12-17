@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Alura.WebAPI.WebApp.HttpClients;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace Alura.ListaLeitura.WebApp.Controllers
 {
@@ -26,6 +27,8 @@ namespace Alura.ListaLeitura.WebApp.Controllers
 
         public async Task<IActionResult> Index()
         {
+            var token = HttpContext.User.Claims.First(c => c.Type == "Token").Value;
+
             var model = new HomeViewModel
             {
                 ParaLer = await ListaDoTipo(TipoListaLeitura.ParaLer),
