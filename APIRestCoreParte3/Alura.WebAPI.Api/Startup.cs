@@ -58,14 +58,14 @@ namespace Alura.WebAPI.Api
                 };
             });
 
-            //services.AddApiVersioning();
-            services.AddApiVersioning(options =>
-            {
-                options.ApiVersionReader = ApiVersionReader.Combine(
-                    new QueryStringApiVersionReader("api-version"),
-                    new HeaderApiVersionReader("api-version")
-                ); ;
-            });
+            services.AddApiVersioning();
+            //services.AddApiVersioning(options =>
+            //{
+            //    options.ApiVersionReader = ApiVersionReader.Combine(
+            //        new QueryStringApiVersionReader("api-version"),
+            //        new HeaderApiVersionReader("api-version")
+            //    ); ;
+            //});
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
