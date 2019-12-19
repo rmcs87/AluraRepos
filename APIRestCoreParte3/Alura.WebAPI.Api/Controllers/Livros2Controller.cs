@@ -10,6 +10,7 @@ namespace Alura.ListaLeitura.Api.Controllers
     [Authorize]
     [ApiController]
     [ApiVersion("2.0")]
+    [ApiExplorerSettings(GroupName = "v2")]
     [Route("api/v{version:apiVersion}/[controller]")]
     //[Route("api/[controller]")]
     public class Livros2Controller : ControllerBase
